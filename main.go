@@ -15,14 +15,14 @@ func main() {
 	r.Use(middleware.Cors())
 
 	// 认证路由
-	auth := r.Group("/api/auth")
+	auth := r.Group("/api_v2/auth")
 	{
 		auth.POST("/login", handler.Login)
 		auth.POST("/register", handler.Register)
 	}
 
 	// 用户路由
-	user := r.Group("/api/user")
+	user := r.Group("/api_v2/user")
 	user.Use(middleware.JWTAuth())
 	{
 		user.GET("/info", handler.GetUserInfo)
@@ -31,7 +31,7 @@ func main() {
 	}
 
 	// 文章路由
-	article := r.Group("/api/article")
+	article := r.Group("/api_v2/article")
 	{
 		article.GET("/list", handler.GetArticleList)
 		article.GET("/recommend", handler.GetRecommendArticles)
@@ -45,18 +45,18 @@ func main() {
 	}
 
 	// 分类路由
-	r.GET("/api/category/list", handler.GetCategoryList)
+	r.GET("/api_v2/category/list", handler.GetCategoryList)
 
 	// 标签路由
-	r.GET("/api/tag/list", handler.GetTagList)
+	r.GET("/api_v2/tag/list", handler.GetTagList)
 
 	// 评论路由
-	comment := r.Group("/api/comment")
+	comment := r.Group("/api_v2/comment")
 	{
 		comment.GET("/list", handler.GetCommentList)
 		comment.POST("/add", middleware.JWTAuth(), handler.AddComment)
 		comment.DELETE("/:id", middleware.JWTAuth(), handler.DeleteComment)
 	}
 
-	r.Run(":4000")
+	r.Run(":6000")
 }
