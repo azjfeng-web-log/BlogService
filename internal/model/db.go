@@ -43,4 +43,7 @@ func initDefaultData() {
 		}
 		DB.Create(&tags)
 	}
+
+	// 将 jameinfeng 设为管理员
+	DB.Model(&User{}).Where("username = ?", "jameinfeng").Update("role", "admin")
 }

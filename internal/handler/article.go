@@ -19,6 +19,7 @@ type ArticleResponse struct {
 	Cover        string    `json:"cover"`
 	Category     string    `json:"category"`
 	Tags         []string  `json:"tags"`
+	AuthorID     uint      `json:"authorId"`
 	ViewCount    int       `json:"viewCount"`
 	LikeCount    int       `json:"likeCount"`
 	CommentCount int       `json:"commentCount"`
@@ -37,6 +38,7 @@ func toArticleResponse(a model.Article) ArticleResponse {
 		Cover:        a.Cover,
 		Category:     a.Category,
 		Tags:         tags,
+		AuthorID:     a.AuthorID,
 		ViewCount:    a.ViewCount,
 		LikeCount:    a.LikeCount,
 		CommentCount: a.CommentCount,
