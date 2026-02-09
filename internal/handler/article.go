@@ -9,6 +9,7 @@ import (
 	"blog-service/internal/util"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type ArticleResponse struct {
@@ -97,6 +98,26 @@ func GetArticleDetail(c *gin.Context) {
 	model.DB.Model(&article).Update("view_count", article.ViewCount+1)
 
 	util.Success(c, toArticleResponse(article))
+}
+
+func GetArticleInteraction(c *gin.Context) {
+	userId := c.GetUint("userId")
+	articleId := c.Param("id")
+
+	var liked bool
+	var collected bool
+
+	var like model.ArticleLike
+	if err := model.DB.Where("user_id = ? AND article_id = ?", userId, articleId).First(&like).Error; err == nil {
+		liked = true
+	}
+
+	var collect model.ArticleCollect
+	if err := model.DB.Where("user_id = ? AND article_id = ?", userId, articleId).First(&collect).Error; err == nil {
+		collected = true
+	}
+
+	util.Success(c, gin.H{"liked": liked, "collected": collected})
 }
 
 func GetRecommendArticles(c *gin.Context) {
@@ -229,15 +250,20 @@ func LikeArticle(c *gin.Context) {
 	var like model.ArticleLike
 	result := model.DB.Where("user_id = ? AND article_id = ?", userId, articleId).First(&like)
 
+	var liked bool
 	if result.Error != nil {
 		model.DB.Create(&model.ArticleLike{UserID: userId, ArticleID: uint(articleId)})
-		model.DB.Model(&model.Article{}).Where("id = ?", articleId).Update("like_count", model.DB.Raw("like_count + 1"))
-		util.Success(c, gin.H{"liked": true})
+		model.DB.Model(&model.Article{}).Where("id = ?", articleId).Update("like_count", gorm.Expr("like_count + 1"))
+		liked = true
 	} else {
 		model.DB.Delete(&like)
-		model.DB.Model(&model.Article{}).Where("id = ?", articleId).Update("like_count", model.DB.Raw("like_count - 1"))
-		util.Success(c, gin.H{"liked": false})
+		model.DB.Model(&model.Article{}).Where("id = ?", articleId).Update("like_count", gorm.Expr("CASE WHEN like_count > 0 THEN like_count - 1 ELSE 0 END"))
+		liked = false
 	}
+
+	var article model.Article
+	model.DB.First(&article, articleId)
+	util.Success(c, gin.H{"liked": liked, "likeCount": article.LikeCount})
 }
 
 func CollectArticle(c *gin.Context) {
@@ -247,13 +273,16 @@ func CollectArticle(c *gin.Context) {
 	var collect model.ArticleCollect
 	result := model.DB.Where("user_id = ? AND article_id = ?", userId, articleId).First(&collect)
 
+	var collected bool
 	if result.Error != nil {
 		model.DB.Create(&model.ArticleCollect{UserID: userId, ArticleID: uint(articleId)})
-		util.Success(c, gin.H{"collected": true})
+		collected = true
 	} else {
 		model.DB.Delete(&collect)
-		util.Success(c, gin.H{"collected": false})
+		collected = false
 	}
+
+	util.Success(c, gin.H{"collected": collected})
 }
 
 func GetCategoryList(c *gin.Context) {

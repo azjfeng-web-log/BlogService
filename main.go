@@ -37,6 +37,7 @@ func main() {
 		article.GET("/recommend", handler.GetRecommendArticles)
 		article.GET("/archive", handler.GetArchiveList)
 		article.GET("/:id", handler.GetArticleDetail)
+		article.GET("/:id/interaction", middleware.JWTAuth(), handler.GetArticleInteraction)
 		article.POST("/:id/like", middleware.JWTAuth(), handler.LikeArticle)
 		article.POST("/:id/collect", middleware.JWTAuth(), handler.CollectArticle)
 		article.POST("", middleware.JWTAuth(), handler.CreateArticle)
